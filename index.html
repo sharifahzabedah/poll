@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quick Poll</title>
+<style>
+  body {
+    font-family: "Inter", sans-serif;
+    background: #f8f9fb;
+    padding: 30px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .poll-box {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    width: 360px;
+    padding: 20px;
+  }
+
+  .poll-header {
+    background: #0078d4;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 16px;
+    font-size: 1.2em;
+  }
+
+  .poll-question {
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .poll-options label {
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  button {
+    background: #0078d4;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  button:hover {
+    background: #005ea8;
+  }
+
+  .result-bar {
+    height: 16px;
+    border-radius: 8px;
+    background: #d9e7f7;
+    overflow: hidden;
+    margin: 5px 0 10px 0;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: #0078d4;
+    width: 0%;
+  }
+
+  .result-text {
+    font-size: 0.9em;
+    color: #333;
+  }
+</style>
+</head>
+<body>
+  <div class="poll-box">
+    <div class="poll-header">Quick Poll</div>
+    <div class="poll-question">
+      Do you know where to find the Standard Operating Procedure (SOPs) for your work area?
+    </div>
+
+    <form id="pollForm" class="poll-options">
+      <label><input type="radio" name="answer" value="yes" required> Yes</label>
+      <label><input type="radio" name="answer" value="no"> No</label>
+      <label><input type="radio" name="answer" value="not_sure"> Not sure</label>
+      <button type="submit">Submit</button>
+    </form>
+
+    <div id="pollResults" style="display:none;">
+      <h4>Poll Results</h4>
+      <div id="resultsContainer"></div>
+    </div>
+  </div>
+
+<script>
+  const form = document.getElementById('pollForm');
+  const pollResults = document.getElementById('pollResults');
+  const resultsContainer = document.getElementById('resultsContainer');
+
+  // Fetch and show results
+  async function fetchResults() {
+    const res = await fetch('/api/results');
+    const data = await res.json();
+    displayResults(data);
+  }
+
+  // Display result bars
+  function displayResults(data) {
+    pollResults.style.display = 'block';
+    resultsContainer.innerHTML = '';
+    const answers = ['yes', 'no', 'not_sure'];
+    const labels = { yes: 'Yes', no: 'No', not_sure: 'Not sure' };
+    answers.forEach(ans => {
+      const percent = data.total > 0 ? ((data[ans] / data.total) * 100).toFixed(1) : 0;
+      resultsContainer.innerHTML += `
+        <div class="result-text">${labels[ans]} — ${percent}%</div>
+        <div class="result-bar"><div class="bar-fill" style="width:${percent}%;"></div></div>
+      `;
+    });
+  }
+
+  // Handle vote submission
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const answer = form.answer.value;
+    await fetch('/api/vote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answer })
+    });
+    form.style.display = 'none';
+    fetchResults();
+  });
+
+  // Load existing results on page load
+  fetchResults();
+</script>
+</body>
+</html>
