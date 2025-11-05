@@ -103,7 +103,7 @@
 
   // Fetch and show results
   async function fetchResults() {
-    const res = await fetch('/api/results');
+    const res = await fetch('https://quick-poll-b2yi.onrender.com/api/results');
     const data = await res.json();
     displayResults(data);
   }
